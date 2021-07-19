@@ -17,6 +17,9 @@
 
 package org.apache.rocketmq.common.protocol;
 
+/**
+ * 用于网络传输，和Netty交互，在服 务端会对应相应的网络处理器 (processor包中)，比如 DefaultRequestProcessor
+ */
 public class RequestCode {
 
     public static final int SEND_MESSAGE = 10;

@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+
+import jdk.jfr.internal.JVM;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -41,6 +43,11 @@ import org.apache.rocketmq.srvutil.ServerUtil;
 import org.apache.rocketmq.srvutil.ShutdownHookThread;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Step1 :首先来解析配置文件 ，需要填充 NameServerConfig、 NettyServerConfig 属性值<br>
+ * Step2 :根据启动属性创建 NamesrvController实例，并初始化<br>
+ * Step3 :注册 JVM 钩子函 数并启动服务器， 以便监昕 Broker、消息生产者 的网络请求<br>
+ */
 public class NamesrvStartup {
 
     private static InternalLogger log;
@@ -142,7 +149,8 @@ public class NamesrvStartup {
             controller.shutdown();
             System.exit(-3);
         }
-
+        // 借鉴，多线程，优雅，step3:
+        // 如果代码中使用了线程池，一种优雅停机的方式就是注册一个 JVM 钩子函数， 在 JVM 进程关闭之前，先将线程池关闭 ，及时释放资源 。
         Runtime.getRuntime().addShutdownHook(new ShutdownHookThread(log, new Callable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -160,6 +168,11 @@ public class NamesrvStartup {
         controller.shutdown();
     }
 
+    /**
+     * 三方开源框架：
+     * @param options
+     * @return
+     */
     public static Options buildCommandlineOptions(final Options options) {
         Option opt = new Option("c", "configFile", true, "Name server config properties file");
         opt.setRequired(false);

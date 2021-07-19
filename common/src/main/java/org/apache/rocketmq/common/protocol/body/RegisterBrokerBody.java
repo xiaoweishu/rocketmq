@@ -38,10 +38,21 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.protocol.RemotingSerializable;
 
+/**
+ * 心跳包请求体
+ */
 public class RegisterBrokerBody extends RemotingSerializable {
 
     private static final InternalLogger LOGGER = InternalLoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
+    /**
+     * 主题配置，topicConfigWrapper 内部 封装的是 TopicConfigManager 中的 topicConfigTable，<br/>
+     * 内部存储的是 Broker启动时默认的 一 些 Topic, MixAll.SELF TEST_TOPIC、 MixAll.DEFAULT一TOPIC ( AutoCreateTopic- Enable=true )., MixAll.BENCHMARK TOPIC 、 MixAll.OFFSET MOVED EVENT 、 BrokerConfig#brokerClusterName 、 BrokerConfig#brokerName 。<br/>
+     * Broker中 Topic默认存储在{ RocketMQ一Home}/store/config/topic中
+     */
     private TopicConfigSerializeWrapper topicConfigSerializeWrapper = new TopicConfigSerializeWrapper();
+    /**
+     * 消息过滤服务器列表
+     */
     private List<String> filterServerList = new ArrayList<String>();
 
     public byte[] encode(boolean compress) {
