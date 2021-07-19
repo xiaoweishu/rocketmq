@@ -26,8 +26,21 @@ public class Message implements Serializable {
     private static final long serialVersionUID = 8445773977080406428L;
 
     private String topic;
+    /**
+     * MQ不做特殊处理
+     */
     private int flag;
+    /**
+     * 扩展属性<br/>
+     * 下面是比较常见的扩展属性<br/>
+     * tag:消息 TAG，用于消息过滤 。<br/>
+     * keys: Message 索引键， 多个用空格隔开， RocketMQ 可以根据这些 key 快速检索到消息 。 waitStoreMsgOK:消息发送时是否等消息存储完成后再返回 。<br/>
+     * delayTimeLevel: 消息延迟级别，用于定时消息或消息重试<br/>
+     */
     private Map<String, String> properties;
+    /**
+     * 消息体
+     */
     private byte[] body;
     private String transactionId;
 

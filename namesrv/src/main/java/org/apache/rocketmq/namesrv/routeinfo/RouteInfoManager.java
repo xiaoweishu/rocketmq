@@ -67,7 +67,7 @@ public class RouteInfoManager {
     private final HashMap<String/* clusterName */, Set<String/* brokerName */>> clusterAddrTable;
     /**
      * Broker 状态信息 。 NameServer 每次 收到心跳包时会 替换该信息<br/>
-     * BrokerLivelnfo 中 的 lastUpdateTimestamp 存储上次收到 Broker 心跳包的时间
+     * BrokerLiveInfo 中 的 lastUpdateTimestamp 存储上次收到 Broker 心跳包的时间
      */
     private final HashMap<String/* brokerAddr */, BrokerLiveInfo> brokerLiveTable;
     /**
@@ -197,6 +197,7 @@ public class RouteInfoManager {
                                 topicConfigWrapper.getDataVersion(),
                                 channel,
                                 haServerAddr));
+                // 技巧：判断以前的值有没有
                 if (null == prevBrokerLiveInfo) {
                     log.info("new broker registered, {} HAServer: {}", brokerAddr, haServerAddr);
                 }

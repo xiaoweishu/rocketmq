@@ -69,12 +69,14 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      *
      * For non-transactional messages, it does not matter as long as it's unique per process. </p>
      *
-     * See {@linktourl http://rocketmq.apache.org/docs/core-concept/} for more discussion.
+     * See {@linktourl http://rocketmq.apache.org/docs/core-concept/} for more discussion.<br/>
+     * 消息服务器在回查事务状态时会随机选择该组中任何一 个生产者发起事务回查请求
      */
     private String producerGroup;
 
     /**
      * Just for testing or demo program
+     * 关键字段：默认的topic_key
      */
     private String createTopicKey = TopicValidator.AUTO_CREATE_TOPIC_KEY_TOPIC;
 

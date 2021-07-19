@@ -183,6 +183,16 @@ public class DefaultMQProducerImpl implements MQProducerInner {
         this.start(true);
     }
 
+    /**
+     *  消息生产者启动流程<br/>
+     *  Step1: 检查productGroup是否符合要求;并改变生产者的 instanceName为进程 ID<br/>
+     *  Step2: 创建 MQClientInstance实例。 整个JVM实例中只存在一个 MQClientManager实例，维护一个 MQClientInstance缓存表 ConcurrentMap<String，MQClientInstance> factoryTable =new ConcurrentHashMap<>()<br/>
+     *  也就是 同一个 clientId只会创建一个 MQClientInstance实例<br/>
+     *  Step3 :向 MQClientInstance注册，将当前生产者加入到 MQClientInstance管理中，方便后续调用网络请求、进行心跳检测等<br/>
+     *  Step4 : 启动 MQClientInstance，如果 MQClientInstance 已经启动 ，则本次启动不会真正执行<br/>
+     * @param startFactory
+     * @throws MQClientException
+     */
     public void start(final boolean startFactory) throws MQClientException {
         switch (this.serviceState) {
             case CREATE_JUST:
@@ -534,6 +544,13 @@ public class DefaultMQProducerImpl implements MQProducerInner {
 
     }
 
+    /**
+     * 核心逻辑：
+     * 发送消息时，根据路由信息，选择一个队列
+     * @param tpInfo
+     * @param lastBrokerName
+     * @return
+     */
     public MessageQueue selectOneMessageQueue(final TopicPublishInfo tpInfo, final String lastBrokerName) {
         return this.mqFaultStrategy.selectOneMessageQueue(tpInfo, lastBrokerName);
     }
@@ -551,6 +568,21 @@ public class DefaultMQProducerImpl implements MQProducerInner {
 
     }
 
+    /**
+     * 执行消息发送，大概的流程有:<br/>
+     * 1. 验证消息
+     * 2. 查找路由
+     * 3. 发送消息
+     * @param msg
+     * @param communicationMode
+     * @param sendCallback
+     * @param timeout
+     * @return
+     * @throws MQClientException
+     * @throws RemotingException
+     * @throws MQBrokerException
+     * @throws InterruptedException
+     */
     private SendResult sendDefaultImpl(
         Message msg,
         final CommunicationMode communicationMode,
@@ -675,7 +707,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             if (callTimeout) {
                 throw new RemotingTooMuchRequestException("sendDefaultImpl call timeout");
             }
-
+            // 借鉴：可以运用该方法，根据不同的异常做相应的操作
             if (exception instanceof MQBrokerException) {
                 mqClientException.setResponseCode(((MQBrokerException) exception).getResponseCode());
             } else if (exception instanceof RemotingConnectException) {
@@ -695,6 +727,14 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             null).setResponseCode(ClientErrorCode.NOT_FOUND_TOPIC_EXCEPTION);
     }
 
+    /**
+     * 2. 查找路由信息
+     * Step1: 从本地缓存中查找topic信息<br/>
+     * Step2: 缓存不存在，从NameServer获取topic信息<br/>
+     * Step3: topic还是不存在，用默认的topic(TBW102)去查找
+     * @param topic
+     * @return
+     */
     private TopicPublishInfo tryToFindTopicPublishInfo(final String topic) {
         TopicPublishInfo topicPublishInfo = this.topicPublishInfoTable.get(topic);
         if (null == topicPublishInfo || !topicPublishInfo.ok()) {
@@ -703,13 +743,11 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             topicPublishInfo = this.topicPublishInfoTable.get(topic);
         }
 
-        if (topicPublishInfo.isHaveTopicRouterInfo() || topicPublishInfo.ok()) {
-            return topicPublishInfo;
-        } else {
+        if (!topicPublishInfo.isHaveTopicRouterInfo() && !topicPublishInfo.ok()) {
             this.mQClientFactory.updateTopicRouteInfoFromNameServer(topic, true, this.defaultMQProducer);
             topicPublishInfo = this.topicPublishInfoTable.get(topic);
-            return topicPublishInfo;
         }
+        return topicPublishInfo;
     }
 
     private SendResult sendKernelImpl(final Message msg,
