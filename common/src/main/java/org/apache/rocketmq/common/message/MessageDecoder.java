@@ -66,7 +66,7 @@ public class MessageDecoder {
 
         input.put(addr);
         input.putLong(offset);
-
+        // 与之对应的是：org.apache.rocketmq.common.UtilAll.string2bytes
         return UtilAll.bytes2string(input.array());
     }
 

@@ -16,6 +16,9 @@
  */
 package org.apache.rocketmq.client.hook;
 
+/**
+ * 设计模式，借鉴：钩子函数处理，类似拦截器，和拦截器不同的点在于注册的钩子函数一定会进方法体
+ */
 public interface SendMessageHook {
     String hookName();
 

@@ -22,7 +22,7 @@ package org.apache.rocketmq.store;
 public class AppendMessageResult {
     // Return code
     private AppendMessageStatus status;
-    // Where to start writing
+    // Where to start writing，核心字段：消息的物理偏移量
     private long wroteOffset;
     // Write Bytes
     private int wroteBytes;
@@ -30,10 +30,15 @@ public class AppendMessageResult {
     private String msgId;
     // Message storage timestamp
     private long storeTimestamp;
-    // Consume queue's offset(step by one)
+    // Consume queue's offset(step by one) 核心字段：消息消费队列逻辑偏移量，类似于数组下标
     private long logicsOffset;
+    /**
+     * 当前未使用
+     */
     private long pagecacheRT = 0;
-
+    /**
+     * 消息条数，批量消息发送时消息条数
+     */
     private int msgNum = 1;
 
     public AppendMessageResult(AppendMessageStatus status) {

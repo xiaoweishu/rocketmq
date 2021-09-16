@@ -63,33 +63,62 @@ import org.apache.rocketmq.store.index.QueryOffsetResult;
 import org.apache.rocketmq.store.schedule.ScheduleMessageService;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
 
+/**
+ * 消息存储
+ * 核心类：
+ */
 public class DefaultMessageStore implements MessageStore {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
-
+    /**
+     * 消息存储配置属性
+     */
     private final MessageStoreConfig messageStoreConfig;
-    // CommitLog
+    /**
+     * CommitLog 文件的存储 实 现类 CommitLog 关键字段：，文件存储目录为：${ROCKET_HOME}/store/commitlog 目录
+     */
     private final CommitLog commitLog;
-
+    /**
+     * 消息队列存储缓存表，按消息主题分组
+     */
     private final ConcurrentMap<String/* topic */, ConcurrentMap<Integer/* queueId */, ConsumeQueue>> consumeQueueTable;
-
+    /**
+     * 消息队列文件 ConsumeQueue 刷盘线程
+     */
     private final FlushConsumeQueueService flushConsumeQueueService;
-
+    /**
+     * 清除 CommitLog 文件服务
+     */
     private final CleanCommitLogService cleanCommitLogService;
-
+    /**
+     * 清除 ConsumeQueue 文件 服务
+     */
     private final CleanConsumeQueueService cleanConsumeQueueService;
-
+    /**
+     * 索引文件实现类
+     */
     private final IndexService indexService;
-
+    /**
+     * MappedFile 分配服务
+     */
     private final AllocateMappedFileService allocateMappedFileService;
-
+    /**
+     * CommitLog消息分发，根据 CommitLog
+     * 文件构建 ConsumeQueue、 IndexFile 文件
+     */
     private final ReputMessageService reputMessageService;
-
+    /**
+     * 存储HA机制
+     */
     private final HAService haService;
 
     private final ScheduleMessageService scheduleMessageService;
-
+    /**
+     * 存储状态
+     */
     private final StoreStatsService storeStatsService;
-
+    /**
+     * 消息堆内存缓存
+     */
     private final TransientStorePool transientStorePool;
 
     private final RunningFlags runningFlags = new RunningFlags();
@@ -102,11 +131,15 @@ public class DefaultMessageStore implements MessageStore {
     private final BrokerConfig brokerConfig;
 
     private volatile boolean shutdown = true;
-
+    /**
+     * 文件刷盘监测点
+     */
     private StoreCheckpoint storeCheckpoint;
 
     private AtomicLong printTimes = new AtomicLong(0);
-
+    /**
+     * CommitLog 文件转发请求
+     */
     private final LinkedList<CommitLogDispatcher> dispatcherList;
 
     private RandomAccessFile lockFile;
@@ -474,6 +507,13 @@ public class DefaultMessageStore implements MessageStore {
         return resultFuture;
     }
 
+    /**
+     * 核心逻辑：step11
+     * Step1 :如果当前 Broker停止工作或 Broker为 SLAVE 角色或 当前 Rocket不支持写入 则拒绝消息写入;如果消息 主题长度超 过 256 个字符 、消息属 性长度超过 65536 个字符将 拒绝该消息写人
+     * Step2 :如果消息 的延迟级别 大于 0，将消息的原主题名称与原消息队列 ID 存入消息属 性中，用延迟消息主题 SCHEDULE TOPIC、消息队列 ID 更新原先消息的主题与队列 ， 这是并发消息消费重试关键的一步
+     * @param msg Message instance to store
+     * @return
+     */
     @Override
     public PutMessageResult putMessage(MessageExtBrokerInner msg) {
         PutMessageStatus checkStoreStatus = this.checkStoreStatus();

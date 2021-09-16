@@ -305,7 +305,8 @@ public abstract class NettyRemotingAbstract {
     }
 
     /**
-     * Execute callback in callback executor. If callback executor is null, run directly in current thread
+     * Execute callback in callback executor. If callback executor is null, run directly in current thread<br/>
+     * 核心逻辑：实现异步回调，发送异步消息的时候需要
      */
     private void executeInvokeCallback(final ResponseFuture responseFuture) {
         boolean runInThisThread = false;

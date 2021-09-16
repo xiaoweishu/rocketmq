@@ -22,6 +22,9 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.rocketmq.common.UtilAll;
 
+/**
+ * 技术点，借鉴：创建消息体的唯一id方案
+ */
 public class MessageClientIDSetter {
     private static final String TOPIC_KEY_SPLITTER = "#";
     private static final int LEN;
