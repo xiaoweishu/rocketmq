@@ -152,7 +152,13 @@ public class ConsumeQueue {
         }
     }
 
+    /**
+     * TODO: 核心逻辑：根据消息存储的时间戳查找消息，这里也是重置消费位点需要的一段逻辑
+     * @param timestamp
+     * @return
+     */
     public long getOffsetInQueueByTime(final long timestamp) {
+        // step1:根据时间戳定位到物理文件
         MappedFile mappedFile = this.mappedFileQueue.getMappedFileByTime(timestamp);
         if (mappedFile != null) {
             long offset = 0;
@@ -488,16 +494,25 @@ public class ConsumeQueue {
         }
     }
 
+    /**
+     * 核心逻辑：根据消息逻辑偏移量查找消息
+     * @param startIndex
+     * @return
+     */
     public SelectMappedBufferResult getIndexBuffer(final long startIndex) {
         int mappedFileSize = this.mappedFileSize;
+        // 得到在consumequeue中的物理偏移量
         long offset = startIndex * CQ_STORE_UNIT_SIZE;
         if (offset >= this.getMinLogicOffset()) {
+            // 根据 物理偏移量 定位到具体的物理文件
             MappedFile mappedFile = this.mappedFileQueue.findMappedFileByOffset(offset);
             if (mappedFile != null) {
+                // offset % mappedFileSize 获取 当前偏移量在文件内部的偏移量
                 SelectMappedBufferResult result = mappedFile.selectMappedBuffer((int) (offset % mappedFileSize));
                 return result;
             }
         }
+        // 说明该消息已经被删除
         return null;
     }
 

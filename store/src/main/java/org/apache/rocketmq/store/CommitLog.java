@@ -125,6 +125,11 @@ public class CommitLog {
         return this.mappedFileQueue.getFlushedWhere();
     }
 
+    /**
+     * 核心逻辑：与getMinOffset()相应
+     * 获取当前commitlog目录的最大偏移量
+     * @return
+     */
     public long getMaxOffset() {
         return this.mappedFileQueue.getMaxOffset();
     }
@@ -1180,12 +1185,20 @@ public class CommitLog {
         return -1;
     }
 
+    /**
+     * 核心逻辑：获取当前commitlog目录的最小偏移量
+     * @return
+     */
     public long getMinOffset() {
+        // 获取目录下的第一个文件
         MappedFile mappedFile = this.mappedFileQueue.getFirstMappedFile();
         if (mappedFile != null) {
+            // shutdown之后就不可用了
             if (mappedFile.isAvailable()) {
+                // 返回该文件的起始偏移量
                 return mappedFile.getFileFromOffset();
             } else {
+                // 返回下一个文件的起始偏移量
                 return this.rollNextFile(mappedFile.getFileFromOffset());
             }
         }
@@ -1193,17 +1206,45 @@ public class CommitLog {
         return -1;
     }
 
+    /**
+     * 核心逻辑：根据偏移量和消息长度查找消息
+     * @param offset
+     * @param size
+     * @return
+     */
     public SelectMappedBufferResult getMessage(final long offset, final int size) {
+        // 得到文件长度
         int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMappedFileSizeCommitLog();
         MappedFile mappedFile = this.mappedFileQueue.findMappedFileByOffset(offset, offset == 0);
         if (mappedFile != null) {
+            // 获取在文件内部的偏移量
             int pos = (int) (offset % mappedFileSize);
+            // 从该偏移量读取size长度的内容
             return mappedFile.selectMappedBuffer(pos, size);
         }
         return null;
     }
 
+    /**
+     * TODO:根据偏移量查找消息，此方法是自己添加的
+     * @param offset
+     * @return
+     */
+    public SelectMappedBufferResult getMessage(final long offset) {
+        // 得到文件长度
+        int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMappedFileSizeCommitLog();
+        MappedFile mappedFile = this.mappedFileQueue.findMappedFileByOffset(offset, offset == 0);
+        if (mappedFile != null) {
+            // 获取在文件内部的偏移量
+            int pos = (int) (offset % mappedFileSize);
+            // 这里的意思是：尝试读取4哥字节获取消息的实际长度，最后读取指定字节，下面的函数并不是真正意义上的实现
+            return mappedFile.selectMappedBuffer(pos);
+        }
+        return null;
+    }
+
     public long rollNextFile(final long offset) {
+        // 获取该文件的大小
         int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMappedFileSizeCommitLog();
         return offset + mappedFileSize - offset % mappedFileSize;
     }
@@ -1641,12 +1682,13 @@ public class CommitLog {
             }
 
             // Determines whether there is sufficient free space
-            // step10：
+            // step10：如果消息长度+END_FILE_MIN_BLANK_LENGTH 大于 CommitLog文件 的空闲空间，则返回 AppendMessageStatus.END_OF_FILE, Broker会重新创建一个新的 CommitLog文件来存储该消息
             if ((msgLen + END_FILE_MIN_BLANK_LENGTH) > maxBlank) {
                 this.resetByteBuffer(this.msgStoreItemMemory, maxBlank);
                 // 1 TOTALSIZE
+                // 高4位：存储当前文件剩余空间
                 this.msgStoreItemMemory.putInt(maxBlank);
-                // 2 MAGICCODE
+                // 2 MAGICCODE 低4位：存储魔数
                 this.msgStoreItemMemory.putInt(CommitLog.BLANK_MAGIC_CODE);
                 // 3 The remaining space may be any value
                 // Here the length of the specially set maxBlank

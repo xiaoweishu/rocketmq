@@ -89,9 +89,18 @@ public class IndexFile {
         return this.mappedFile.destroy(intervalForcibly);
     }
 
+    /**
+     * 核心功能：
+     * @param key 消息索引
+     * @param phyOffset 消息物理偏移量
+     * @param storeTimestamp 消息存储时间戳
+     * @return
+     */
     public boolean putKey(final String key, final long phyOffset, final long storeTimestamp) {
+        // step1:indexHeader.getIndexCount() 当前已使用条目 ，indexNum：允许最大条目数
         if (this.indexHeader.getIndexCount() < this.indexNum) {
             int keyHash = indexKeyHashMethod(key);
+            // keyHash对hash槽数量取余：定位到hashcode对应的hash槽下标
             int slotPos = keyHash % this.hashSlotNum;
             int absSlotPos = IndexHeader.INDEX_HEADER_SIZE + slotPos * hashSlotSize;
 
@@ -157,7 +166,7 @@ public class IndexFile {
             log.warn("Over index file capacity: index count = " + this.indexHeader.getIndexCount()
                 + "; index max num = " + this.indexNum);
         }
-
+        // 当前索引文件已经写满
         return false;
     }
 

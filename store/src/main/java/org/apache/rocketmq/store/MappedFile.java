@@ -406,6 +406,11 @@ public class MappedFile extends ReferenceResource {
         return null;
     }
 
+    /**
+     * 核心逻辑：通过在文件内部的偏移量查找消息，默认从pos开始，读取20字节（8+4+8）的内容
+     * @param pos 文件内部的偏移量，通常是 offset % mappedFileSize的计算结果
+     * @return
+     */
     public SelectMappedBufferResult selectMappedBuffer(int pos) {
         int readPosition = getReadPosition();
         if (pos < readPosition && pos >= 0) {
