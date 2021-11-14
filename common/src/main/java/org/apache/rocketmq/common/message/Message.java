@@ -34,7 +34,8 @@ public class Message implements Serializable {
      * 扩展属性<br/>
      * 下面是比较常见的扩展属性<br/>
      * tag:消息 TAG，用于消息过滤 。<br/>
-     * keys: Message 索引键， 多个用空格隔开， RocketMQ 可以根据这些 key 快速检索到消息 。 waitStoreMsgOK:消息发送时是否等消息存储完成后再返回 。<br/>
+     * keys: Message 索引键， 多个用空格隔开， RocketMQ 可以根据这些 key 快速检索到消息 。<br/>
+     * waitStoreMsgOK:消息发送时是否等消息存储完成后再返回 。<br/>
      * delayTimeLevel: 消息延迟级别，用于定时消息或消息重试<br/>
      */
     private Map<String, String> properties;

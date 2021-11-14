@@ -751,7 +751,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
     }
 
     /**
-     *
+     * 核心逻辑：消息发送的处理部分
      * @param msg 待发送消息
      * @param mq 消息将发送到该消息队列上
      * @param communicationMode 消息发送模式，SYNC、ASYNC、ONEWAY
@@ -770,6 +770,8 @@ public class DefaultMQProducerImpl implements MQProducerInner {
         final SendCallback sendCallback,
         final TopicPublishInfo topicPublishInfo,
         final long timeout) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
+        // Step1:根据 MessageQueue获取 Broker的网络地址。 如果 MQClientInstance的 brokerAddrTable缓存没有该Broker的信息，则从NameServer主动更新一下topic的路由信息。
+        // 如果路由更新后还是找不到 Broker信息，则抛出 MQClientException，提示 Broker不存在
         long beginStartTime = System.currentTimeMillis();
         String brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());
         if (null == brokerAddr) {
@@ -783,6 +785,8 @@ public class DefaultMQProducerImpl implements MQProducerInner {
 
             byte[] prevBody = msg.getBody();
             try {
+                // Step2:为消息分配全局唯一ID，如果消息体默认超过4K(compressMsgBodyOverHowMuch),会对消息体采用zip压缩，并设置消息的系统标记为MessageSysFlag.COMPRESSED_FLAG。
+                // 如果是事务Prepared消息，则设置消息的系统标记为MessageSysFlag.TRANSACTION_PREPARED_TYPE
                 //for MessageBatch,ID has been set in the generating process
                 if (!(msg instanceof MessageBatch)) {
                     MessageClientIDSetter.setUniqID(msg);
@@ -818,6 +822,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                     this.executeCheckForbiddenHook(checkForbiddenContext);
                 }
 
+                // step3: 如果注册了钩子函数，则执行消息发送之前的增强逻辑，可以注册多个钩子处理类
                 if (this.hasSendMessageHook()) {
                     context = new SendMessageContext();
                     context.setProducer(this);
@@ -839,6 +844,8 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                     this.executeSendMessageHookBefore(context);
                 }
 
+                // step4: 构建消息发送请求包。主要包含如下重要信息:生产者组、主题名称、默认创建主题Key、该主题在单个Broker默认队列数、队列ID(队列序号)、
+                // 消息系统标记(MessageSysFlag)、消息发送时间、消息标记(RocketMQ对消息中的flag不做任何处理，供应用程序使用)、消息扩展属性、消息重试次数、是否是批量消息等
                 SendMessageRequestHeader requestHeader = new SendMessageRequestHeader();
                 requestHeader.setProducerGroup(this.defaultMQProducer.getProducerGroup());
                 requestHeader.setTopic(msg.getTopic());
@@ -892,6 +899,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                         if (timeout < costTimeAsync) {
                             throw new RemotingTooMuchRequestException("sendKernelImpl call timeout");
                         }
+                        // step5: 根据消息发送方式，同步、异步、单向方式进行网络传输
                         sendResult = this.mQClientFactory.getMQClientAPIImpl().sendMessage(
                             brokerAddr,
                             mq.getBrokerName(),
@@ -926,7 +934,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                         assert false;
                         break;
                 }
-
+                // step6: 如果注册了消息发送钩子函数，执行after逻辑。注意，就算消息发送过程中发生RemotingException、MQBrokerException、InterruptedException时该方法也会执行
                 if (this.hasSendMessageHook()) {
                     context.setSendResult(sendResult);
                     this.executeSendMessageHookAfter(context);

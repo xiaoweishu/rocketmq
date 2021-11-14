@@ -87,11 +87,13 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
      * Timeout for sending messages.
+     * 发送消息默认超时时间， 默认 3s
      */
     private int sendMsgTimeout = 3000;
 
     /**
      * Compress message body threshold, namely, message body larger than 4k will be compressed on default.
+     * 消息体超过该值则启用压缩，默认 4K
      */
     private int compressMsgBodyOverHowmuch = 1024 * 4;
 
@@ -99,6 +101,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      * Maximum number of retry to perform internally before claiming sending failure in synchronous mode. </p>
      *
      * This may potentially cause message duplication which is up to application developers to resolve.
+     * 同 步方式发送消息重试次数，默认为 2，总共执行 3 次
      */
     private int retryTimesWhenSendFailed = 2;
 
@@ -111,11 +114,13 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
 
     /**
      * Indicate whether to retry another broker on sending failure internally.
+     * 消息重试时选择另外一个 Broker时是否不等待存储结果就返回 ， 默认为 false
      */
     private boolean retryAnotherBrokerWhenNotStoreOK = false;
 
     /**
      * Maximum allowed message size in bytes.
+     * 允许发送的最大消息长度，默认为 4M，最大值为 2"32-1
      */
     private int maxMessageSize = 1024 * 1024 * 4; // 4M
 

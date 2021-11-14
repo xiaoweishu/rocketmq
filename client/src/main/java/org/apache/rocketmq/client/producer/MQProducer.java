@@ -119,6 +119,19 @@ public interface MQProducer extends MQAdmin {
     void request(final Message msg, final RequestCallback requestCallback, final long timeout)
         throws MQClientException, RemotingException, InterruptedException, MQBrokerException;
 
+    /**
+     * 消息发送，指定消息选择算法，覆盖消息生产者默认的消息队列负载
+     * @param msg
+     * @param selector
+     * @param arg
+     * @param timeout
+     * @return
+     * @throws RequestTimeoutException
+     * @throws MQClientException
+     * @throws RemotingException
+     * @throws MQBrokerException
+     * @throws InterruptedException
+     */
     Message request(final Message msg, final MessageQueueSelector selector, final Object arg,
         final long timeout) throws RequestTimeoutException, MQClientException, RemotingException, MQBrokerException,
         InterruptedException;
