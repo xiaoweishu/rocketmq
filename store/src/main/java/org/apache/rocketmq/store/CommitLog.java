@@ -55,7 +55,7 @@ public class CommitLog {
     // End of file empty MAGIC CODE cbd43194
     protected final static int BLANK_MAGIC_CODE = -875286124;
     /**
-     * 可以 看 作 是${ROCKET_HOME}/store/commitlog文件夹。MappedFile可以看作commitlog文件夹下的一个个文件
+     * 可以看作是${ROCKET_HOME}/store/commitlog文件夹。MappedFile可以看作commitlog文件夹下的一个个文件
      */
     protected final MappedFileQueue mappedFileQueue;
     protected final DefaultMessageStore defaultMessageStore;
@@ -1208,6 +1208,8 @@ public class CommitLog {
 
     /**
      * 核心逻辑：根据偏移量和消息长度查找消息
+     * 首先根据偏移找到所在的物理偏移量，然后用offset与文件长度取余得到在文件内的偏移量，从该偏移量读取size长度的内容返回即可。
+     * 如果只根据消息偏移查找消息，则首先找到文件内的偏移量，然后尝试读取4个字节获取消息的实际长度，最后读取指定字节即可
      * @param offset
      * @param size
      * @return
@@ -1243,6 +1245,12 @@ public class CommitLog {
         return null;
     }
 
+    /**
+     * 根据该offset返回下一个文件的起始偏移量。
+     * 首先获取一个文件的大小，减去(offset%mappedFileSize)其目的是回到下一文件的起始偏移量
+     * @param offset
+     * @return
+     */
     public long rollNextFile(final long offset) {
         // 获取该文件的大小
         int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMappedFileSizeCommitLog();

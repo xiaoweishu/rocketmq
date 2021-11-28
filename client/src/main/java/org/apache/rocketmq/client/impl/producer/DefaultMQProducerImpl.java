@@ -751,7 +751,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
     }
 
     /**
-     * 核心逻辑：消息发送的处理部分
+     * 核心逻辑：消息发送的处理部分  step1 ~ step6
      * @param msg 待发送消息
      * @param mq 消息将发送到该消息队列上
      * @param communicationMode 消息发送模式，SYNC、ASYNC、ONEWAY
