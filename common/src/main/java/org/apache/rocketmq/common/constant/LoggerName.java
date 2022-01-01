@@ -16,6 +16,9 @@
  */
 package org.apache.rocketmq.common.constant;
 
+/**
+ * 核心类：管理日志的appendName
+ */
 public class LoggerName {
     public static final String FILTERSRV_LOGGER_NAME = "RocketmqFiltersrv";
     public static final String NAMESRV_LOGGER_NAME = "RocketmqNamesrv";

@@ -48,6 +48,7 @@ public abstract class ServiceThread implements Runnable {
             return;
         }
         stopped = false;
+        // 疑惑：当子类调用start方法的时候，这里的this应该指的是子类吧？
         this.thread = new Thread(this, getServiceName());
         this.thread.setDaemon(isDaemon);
         this.thread.start();

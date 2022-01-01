@@ -114,7 +114,13 @@ public class MQClientInstance {
         }
     });
     private final ClientRemotingProcessor clientRemotingProcessor;
+    /**
+     * 消息拉取服务类
+     */
     private final PullMessageService pullMessageService;
+    /**
+     * 核心字段：重平衡服务类
+     */
     private final RebalanceService rebalanceService;
     private final DefaultMQProducer defaultMQProducer;
     private final ConsumerStatsManager consumerStatsManager;

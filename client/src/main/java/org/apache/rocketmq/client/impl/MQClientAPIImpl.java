@@ -750,6 +750,15 @@ public class MQClientAPIImpl {
         return null;
     }
 
+    /**
+     * 异步向broker拉取消息
+     * @param addr
+     * @param request
+     * @param timeoutMillis
+     * @param pullCallback
+     * @throws RemotingException
+     * @throws InterruptedException
+     */
     private void pullMessageAsync(
         final String addr,
         final RemotingCommand request,

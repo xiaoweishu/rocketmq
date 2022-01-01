@@ -18,11 +18,32 @@ package org.apache.rocketmq.client.impl.consumer;
 
 import org.apache.rocketmq.common.message.MessageQueue;
 
+/**
+ * 核心类：创建这个类的地方有两块：
+ * 一个是在RocketMQ根据PullRequest拉取任务执行完一次消息拉取任务后，又将PullRequest对象放入到pullRequestQueue，
+ * 第二个是在RebalanceImpl中创建
+ */
 public class PullRequest {
+    /**
+     * 消费者组
+     */
     private String consumerGroup;
+    /**
+     * 待拉取消费队列
+     * 核心字段：决定了queueId
+     */
     private MessageQueue messageQueue;
+    /**
+     * 消息处理队列，从Broker拉取到的消息先存入ProccessQueue，然后再提交到消费者消费线程池消费
+     */
     private ProcessQueue processQueue;
+    /**
+     * 待拉取的MessageQueue偏移量
+     */
     private long nextOffset;
+    /**
+     * 之前是否被锁定
+     */
     private boolean previouslyLocked = false;
 
     public boolean isPreviouslyLocked() {
