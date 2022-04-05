@@ -136,7 +136,7 @@ public abstract class NettyRemotingAbstract {
 
     /**
      * Entry of incoming command processing.
-     *
+     * 核心方法：处理通信的入口
      * <p>
      * <strong>Note:</strong>
      * The incoming remoting command may be
