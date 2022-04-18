@@ -56,6 +56,7 @@ public class MQFaultStrategy {
     }
 
     public MessageQueue selectOneMessageQueue(final TopicPublishInfo tpInfo, final String lastBrokerName) {
+        // Broker故障延迟机制
         if (this.sendLatencyFaultEnable) {
             try {
                 int index = tpInfo.getSendWhichQueue().incrementAndGet();
@@ -64,6 +65,7 @@ public class MQFaultStrategy {
                     if (pos < 0)
                         pos = 0;
                     MessageQueue mq = tpInfo.getMessageQueueList().get(pos);
+                    // 说明当前broker已经可用，重新参与路由匹配计算
                     if (latencyFaultTolerance.isAvailable(mq.getBrokerName()))
                         return mq;
                 }
@@ -78,6 +80,7 @@ public class MQFaultStrategy {
                     }
                     return mq;
                 } else {
+                    // 说明当前notBestBroker是可用的
                     latencyFaultTolerance.remove(notBestBroker);
                 }
             } catch (Exception e) {

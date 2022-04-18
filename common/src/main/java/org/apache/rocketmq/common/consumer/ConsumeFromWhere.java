@@ -16,15 +16,33 @@
  */
 package org.apache.rocketmq.common.consumer;
 
+/**
+ * 消费策略
+ */
 public enum ConsumeFromWhere {
+    /**
+     * 从消费队列最大的偏移量开始消费
+     */
     CONSUME_FROM_LAST_OFFSET,
 
     @Deprecated
     CONSUME_FROM_LAST_OFFSET_AND_FROM_MIN_WHEN_BOOT_FIRST,
+    /**
+     * 从消费队列最小偏移量开始消费
+     */
     @Deprecated
     CONSUME_FROM_MIN_OFFSET,
+    /**
+     * 从消费队列最大的偏移量开始消费
+     */
     @Deprecated
     CONSUME_FROM_MAX_OFFSET,
+    /**
+     * 从消费队列最小偏移量开始消费
+     */
     CONSUME_FROM_FIRST_OFFSET,
+    /**
+     * 从指定的时间戳开始消费，默认为消费者启动之前的30分钟处开始消费
+     */
     CONSUME_FROM_TIMESTAMP,
 }

@@ -865,6 +865,7 @@ public class DefaultLitePullConsumerImpl implements MQConsumerInner {
         }
 
         if (offset < 0) {
+            // 当前消费队列消息消费进度为-1，会抛出异常
             throw new MQClientException("offset < 0", null);
         }
 

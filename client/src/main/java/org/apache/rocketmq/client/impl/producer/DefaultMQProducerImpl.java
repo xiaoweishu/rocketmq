@@ -546,7 +546,8 @@ public class DefaultMQProducerImpl implements MQProducerInner {
 
     /**
      * 核心逻辑：
-     * 发送消息时，根据路由信息，选择一个队列
+     * 发送消息时，根据路由信息，选择一个队列<br/>
+     * 可能会多次执行选择消息队列这个方法，lastBrokerName就是上一次选择的执行发送消息失败的Broker
      * @param tpInfo
      * @param lastBrokerName
      * @return
