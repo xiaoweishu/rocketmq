@@ -146,12 +146,15 @@ public class RebalancePushImpl extends RebalanceImpl {
         } catch (MQClientException e) {
             log.warn("Compute consume offset exception, mq={}", mq);
         }
+        // 出现异常的情况，使用-1
         return result;
     }
 
     @Override
     public long computePullFromWhereWithException(MessageQueue mq) throws MQClientException {
+        // 0是最早的消费位点，-1是没有有效的消息偏移量
         long result = -1;
+        // 获取消费策略配置
         final ConsumeFromWhere consumeFromWhere = this.defaultMQPushConsumerImpl.getDefaultMQPushConsumer().getConsumeFromWhere();
         final OffsetStore offsetStore = this.defaultMQPushConsumerImpl.getOffsetStore();
         switch (consumeFromWhere) {
@@ -163,8 +166,9 @@ public class RebalancePushImpl extends RebalanceImpl {
                 if (lastOffset >= 0) {
                     result = lastOffset;
                 }
-                // First start,no offset
+                // First start,no offset，当前并未存储其有效偏移量，可以理解为第一次消费
                 else if (-1 == lastOffset) {
+                    // 从重试队列偏移量为0开始消费
                     if (mq.getTopic().startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
                         result = 0L;
                     } else {
