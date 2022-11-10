@@ -442,6 +442,11 @@ public class MessageDecoder {
         return map;
     }
 
+    /**
+     * 关键方法：编码后的内容填充到Remoting Command的body
+     * @param message
+     * @return
+     */
     public static byte[] encodeMessage(Message message) {
         //only need flag, body, properties
         byte[] body = message.getBody();
@@ -513,6 +518,11 @@ public class MessageDecoder {
         return message;
     }
 
+    /**
+     * 批量消息的编码
+     * @param messages
+     * @return
+     */
     public static byte[] encodeMessages(List<Message> messages) {
         //TO DO refactor, accumulate in one buffer, avoid copies
         List<byte[]> encodedMessages = new ArrayList<byte[]>(messages.size());

@@ -16,6 +16,9 @@
  */
 package org.apache.rocketmq.store;
 
+/**
+ * 核心类：可以用来判断消息处理是否成功
+ */
 public enum PutMessageStatus {
     PUT_OK,
     FLUSH_DISK_TIMEOUT,
