@@ -81,6 +81,12 @@ public class MessageDecoder {
         return UtilAll.bytes2string(byteBuffer.array());
     }
 
+    /**
+     * 核心逻辑：通过消息ID解码出响应的信息，Broker的地址（IP地址和端口）和Commit Log的物理偏移地址
+     * @param msgId
+     * @return
+     * @throws UnknownHostException
+     */
     public static MessageId decodeMessageId(final String msgId) throws UnknownHostException {
         SocketAddress address;
         long offset;
